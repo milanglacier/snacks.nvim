@@ -1,0 +1,53 @@
+name: Sync upstream main to dev
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run once daily at 03:00 UTC
+    - cron: "0 3 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/folke/snacks.nvim.git
+          git fetch upstream main
+
+      - name: Ensure dev branch exists
+        run: |
+          if git show-ref --verify --quiet refs/heads/dev; then
+            git checkout dev
+          elif git ls-remote --exit-code origin dev; then
+            git checkout -b dev origin/dev
+          else
+            git checkout -b dev
+          fi
+
+      - name: Merge upstream main into dev
+        run: |
+          git merge --no-edit upstream/main || {
+            echo "Merge conflict detected, aborting merge."
+            git merge --abort || true
+            exit 1
+          }
+
+      - name: Push dev branch
+        run: |
+          git push origin dev
+
