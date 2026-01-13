@@ -1315,6 +1315,7 @@ function M:dim(parent)
   ret.height = math.max(ret.height, self.opts.min_height or 0, 1)
   ret.height = math.min(ret.height, self.opts.max_height or ret.height, parent.height)
   ret.height = math.max(ret.height, 1)
+  ret.height = math.floor(ret.height + 0.5)
 
   ret.width = size(self.opts.width, parent.width, border.left + border.right)
   ret.width = math.max(ret.width, self.opts.min_width or 0, 1)
